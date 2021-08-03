@@ -1,0 +1,12 @@
+{
+    "token":"DISCORD BOT TOKEN HERE",
+    "test_token":"DISCORD TEST BOT TOKEN HERE - IF EXISTS",
+    "status":"Python 3.9",
+    "py_execute_code_api_url":"",
+    "py_execute_code_api_data":{},
+    "automatic_reaction_emojis" : [
+        [["python", "py", "py3"], ["PYTHON", "PYBR"]],
+        [["github", "github. "], ["GITHUB"]],
+        [["vscode", "ide", "editor de codigo"], ["VSCODE"]]
+    ]
+}
