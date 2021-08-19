@@ -1,28 +1,28 @@
 import discord
-from src.PyBrBot import Interface, Config
+from src.PyBrBot import Bot, Config
 
-# Solicitando modo e acessando Token
+# Solicitando modo do BOT
 test_mode = input("Ativar modo teste? (S/n) ")
-test_mode = False if test_mode.lower() in ["n", "nao", "não"] else True
-token = Config.get('token') if not test_mode else Config.get('test_token')
 
-# BOT
-class PyBrBot(discord.Client):
+# Ativa o modo oficial caso ativação seja negada
+if (test_mode.lower() in ["n", "nao", "não"]):
+    test_mode = False
+    token = Config.get('token')
+    command_prefix = Config.get('bot_commands_prefix')
+else:
+    test_mode = True
+    token = Config.get('test_token')
+    command_prefix = Config.get('test_bot_commands_prefix')
 
-    # Quando o BOT for Inciado
-    async def on_ready(self) -> None:
-        print('BOT iniciado: {0}!'.format(self.user))
-        # Atualizando Status
-        await Interface.change_status(self)
-
-    # Quando uma mensagem for enviada
-    async def on_message(self, message:discord.Message) -> None:
-        # Reações automáticas com base na mensagem
-        await Interface.automatic_reaction_emojis(self, message, only_guild=False)
-        # Interpreta código python nas mensagens caso o BOT seja mencionado
-        await Interface.code_interpreter(self, message, only_guild=True)
-
-# Inciando
+# Inciando BOT
 if (__name__ == "__main__"):
-    client = PyBrBot()
+    # Alterando intents
+    intents = discord.Intents.default()
+    intents.members = True
+    
+    client = Bot(
+        intents=intents,
+        command_prefix=command_prefix, 
+        remove_commands=['help']
+    )
     client.run(token)
