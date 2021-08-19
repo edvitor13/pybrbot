@@ -39,7 +39,7 @@ git clone --branch v1.0.0 https://github.com/edvitor13/pybrbot
    - Função "**doc**"
       Retorna via busca o conteúdo da documentação PT-BR do [Python 3](https://docs.python.org/pt-br/3/).
       
-      - Sintaxe: **.py doc *args**
+      - Sintaxe: **.py doc \*args**
       
       - Exemplo: 
       
@@ -117,7 +117,8 @@ O arquivo "**config_model.json**" deve ser renomeado para "**config.json**" e su
    - Responsável por Carregar e Acessar as configurações do arquivo "**config.json**".
 
 > E possui um módulo auxiliar "**tools**":
-> Todas as classes com prefixo `Bot` utilizam recursos de `discord.py`
+
+Todas as classes com prefixo `Bot` utilizam recursos de `discord.py`
 
 1. "**AsyncFast**" em "**src.PyBrBot.tools.async_fast**"
    - Oferece funcionalidades constantemente utilizadas para ações assíncronas. 
