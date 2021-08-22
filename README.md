@@ -1,6 +1,6 @@
 # PyBr BOT - Python Brasil 🐍
 
-#### v1.0.0
+#### v1.0.1
 
 Caso tenha alguma dúvida, entre em contato através do canal de texto `🆘╎dúvidas` de nosso servidor.
 
@@ -11,7 +11,7 @@ BOT oficial do Servidor "Python Brasil 🐍" no Discord. https://discord.gg/HbZF
 ###### Última versão estável:
 
 ```
-git clone --branch v1.0.0 https://github.com/edvitor13/pybrbot
+git clone --branch v1.0.1 https://github.com/edvitor13/pybrbot
 ```
 
 
