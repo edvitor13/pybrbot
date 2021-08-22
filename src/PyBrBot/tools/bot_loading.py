@@ -34,7 +34,7 @@ class BotLoading:
     # "start_after" a partir de quantos segundos ela será enviada
     # "stop_after" depois de enviada, em quantos segundos será removida
     def message(
-        self, start_after:float=2, stop_after:float=120, text:str=""
+        self, start_after:float=2, stop_after:float=60, text:str=""
     ) -> BotLoading:
         # Criando nova tarefa para "_loading_message"
         # não interferir na thread principal
@@ -49,7 +49,7 @@ class BotLoading:
     # "start_after" a partir de quantos segundos ela será adicionada
     # "stop_after" depois de adicionada, em quantos segundos será removida
     def reaction(
-        self, start_after:float=0, stop_after:float=120
+        self, start_after:float=0, stop_after:float=60
     ) -> BotLoading:
         # Criando nova tarefa para "_loading_reaction"
         # não interferir na thread principal
@@ -146,6 +146,10 @@ class BotLoading:
         # Tempo de espera
         await AsyncFast.sleep(start_after)
 
+        # Caso o loading já tenha sido encerrado
+        if (self.closed_reaction()):
+            return self
+        
         # Obtendo reação de loading
         reaction = get(
             interface.Interface.bot.emojis, 

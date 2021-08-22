@@ -48,9 +48,7 @@ class Bot(commands.Bot):
         # resultado da documentação python
         await Interface.search_pydoc(ctx, ctx.invoked_with)
 
-        await super().on_command_error(ctx, exception)
 
-    
     # Quando um novo membro entrar no servidor
     async def on_member_join(self, member:discord.Member):
         # Enviando boas vindas ao novo membro

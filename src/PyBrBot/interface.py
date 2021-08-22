@@ -151,25 +151,34 @@ class Interface:
     async def search_pydoc(
         messageable:ds.abc.Messageable, search:str=""
     ) -> None:
+        # Caso a busca seja vazia
         if (len(search.strip()) < 1):
             await messageable.send(
                 f"```\nInforme algo que deseja buscar"
                 "\nExemplo: .py doc print```")
             return None
+        
+        # Loading
+        loading = BotLoading(messageable).reaction(2, stop_after=10)
 
+        # Buscando dados
         try:
-            # Em no máximo 10 segundos
             embed_data = await AsyncFast.to_async_timeout(
                 10, Functions.search_pydoc, search)
         except:
             await messageable.send(
                 f"```\nNão foi possível procurar \"{search}\" =(\n```")
 
+        # Fim loading
+        await loading.close()
+
+        # Caso não tenha resultado
         if (len(embed_data) == 0):
             await messageable.send(
                 f"```\nNenhum resultado para \"{search}\" =(\n```")
             return None
         
+        # Enviando embed com resultados
         await messageable.send(embed=Embed.from_dict(embed_data))
 
 
@@ -192,6 +201,7 @@ class Interface:
         if (len(embed_data) > 0):
             embed = Embed.from_dict(embed_data)
             try:
+                print("\nMensagem de boas vindas para: ", member)
                 await member.send("", embed=embed)
             except Exception as e:
                 print("[ERR welcome_dm_message] ->",
