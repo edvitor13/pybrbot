@@ -3,7 +3,7 @@
     "test_token":"TOKEN DO BOT DE TESTES - CASO TENHA",
     "bot_commands_prefix":[".py ", "."],
     "test_bot_commands_prefix":["$py ", "$"],
-    "loading_icon":"media/img/system/loading_50.gif",
+    "loading_icon":"src/media/img/system/loading_50.gif",
     "loading_emoji":"LOADING",
     "status":"Python 3.9",
     "database_pydoc":"src/databases/pydoc_ptbr.db",
