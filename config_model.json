@@ -7,6 +7,7 @@
     "loading_emoji":"LOADING",
     "status":"Python 3.9",
     "database_pydoc":"src/databases/pydoc_ptbr.db",
+    "database_pybrbot":"src/databases/pybrbot.db",
     "py_execute_code_api_url":"",
     "py_execute_code_api_data":{},
     "welcome_embed": {

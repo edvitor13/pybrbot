@@ -82,8 +82,8 @@ class Interface:
                 30, Functions.code_interpreter, message.content
             )
         except:
-            await message.reply(
-                "Não foi possível executar seu código =("
+            await Interface._code_interpreter_reply(
+                message, "Não foi possível executar seu código =("
             )
 
         # Fim loading
@@ -112,37 +112,84 @@ class Interface:
             # Verificando se mensagem não passa do limite de chars.
             if (len(msg) < 2000):
                 if (not only_result):
-                    await message.reply(msg, mention_author=False)
+                    await Interface._code_interpreter_reply(
+                        message, msg, mention_author=True
+                    )
                 else:
-                    await message.reply(msg_result, mention_author=False)
+                    await Interface._code_interpreter_reply(
+                        message, msg_result, mention_author=True
+                    )
             else:
                 # Código
                 if (not only_result):
                     if (len(msg_exec) <= 2000):
-                        await message.reply(msg_exec, mention_author=False)
+                        await Interface._code_interpreter_reply(
+                            message, msg_exec, mention_author=True
+                        )
                     else:
                         # Enviando arquivo com código
                         code_file = StringIO(code)
-                        await message.reply(
+                        await Interface._code_interpreter_reply(
+                            message,
                             f'**Executando o código:**', 
                             file=ds.File(code_file, "CodigoExecutado.py"),
-                            mention_author=False
+                            mention_author=True
                         )
                         code_file.close()
 
                 # Resultado
                 if (len(msg_result) <= 2000):
-                    await message.reply(msg_result, mention_author=False)
+                    await Interface._code_interpreter_reply(
+                        message, msg_result, mention_author=True
+                    )
                 else:
                     # Enviando arquivo com resultado
                     result_file = StringIO(result)
-                    await message.reply(
+                    await Interface._code_interpreter_reply(
+                        message,
                         f'**Resultado:**', 
                         file=ds.File(result_file, "Resultado.txt"),
-                        mention_author=False
+                        mention_author=True
                     )
                     result_file.close()
             i += 1
+
+
+    # Responsável por enviar conteúdo de resposta
+    # do método code_interpreter
+    @staticmethod
+    async def _code_interpreter_reply(
+        message:ds.Message, *args, **kwargs
+    ) -> ds.Message:
+
+        # Verificando se já existe uma resposta para mensagem
+        reply_id = await AsyncFast.to_async(
+            Functions._code_interpreter_reply, message.guild.id, message.id
+        )
+
+        if (reply_id is None):
+            # Adicionando resposta
+            msg = await message.reply(*args, **kwargs)
+            
+            # Registrando histórico
+            await AsyncFast.to_async(
+                Functions._code_interpreter_add_historic, 
+                message.guild.id, message.id, msg.id
+            )
+            
+            return msg
+        else:
+            try:
+                context = await Interface.bot.get_context(message)
+                
+                reply_msg = await context.fetch_message(reply_id)
+                msg = await reply_msg.edit(content=args[0])
+            except Exception as e:
+                print("[ERR] Falha ao editar mensagem 'code_interpreter'")
+                print(e)
+                msg = None
+
+            return msg
 
     
     # Exibe informações da documentação

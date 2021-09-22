@@ -1,6 +1,6 @@
 # PyBr BOT - Python Brasil 🐍
 
-#### v1.0.1
+#### v1.1.0a
 
 Caso tenha alguma dúvida, entre em contato através do canal de texto `🆘╎dúvidas` de nosso servidor.
 
@@ -13,6 +13,15 @@ BOT oficial do Servidor "Python Brasil 🐍" no Discord. https://discord.gg/HbZF
 ```
 git clone --branch v1.0.1 https://github.com/edvitor13/pybrbot
 ```
+
+
+
+###### Modificações em Andamento 1.1.0 Alpha
+
+1. **Suporte para edição de código já interpretado pelo Bot**
+   - Criação do banco de dados "pybrbot.db"
+      - Criação da Tabela "code_interpreter_historic"
+         - Responsável por Armazenar informações de identificação das mensagens que tiveram o código interpretado pelo BOT
 
 
 

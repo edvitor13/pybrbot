@@ -113,6 +113,68 @@ class Functions:
         return list(zip(pycodes, interpreted_pycodes))
 
 
+    # Verificar se já existe uma mensagem respondida
+    # em determinado servidor
+    # Retorna o id da mensagem de resposta
+    @staticmethod
+    def _code_interpreter_reply(
+        guild_id:int, message_id:int
+    ) -> int:
+
+        sql = """
+        SELECT reply_id FROM code_interpreter_historic
+        WHERE guild_id = ? and message_id = ?
+        LIMIT 1
+        """
+
+        try:
+            db = Database(Config.get("database_pybrbot"))
+            db.execute(sql, [guild_id, message_id])
+            data = db.cur.fetchall()
+        except Exception as e:
+            print("[ERR] Falha ao acessar dados code_interpreter_historic")
+            print(e)
+            data = []
+        finally:
+            db.close()
+
+        if (len(data) < 1):
+            return None
+        else:
+            return int(data[0]["reply_id"])
+    
+
+    # Registra no histórico uma mensagem respondia
+    # pelo Bot com o código interpretado
+    @staticmethod
+    def _code_interpreter_add_historic(
+        guild_id:int, message_id:int, reply_id:int
+    ) -> int:
+
+        sql = """
+        INSERT INTO code_interpreter_historic(
+            guild_id, message_id, reply_id
+        )
+        VALUES(?, ?, ?)
+        """
+        
+        try:
+            db = Database(Config.get("database_pybrbot"))
+            db.execute(sql, [guild_id, message_id, reply_id])
+            insert_id = db.cur.lastrowid
+        except Exception as e:
+            print("[ERR] Falha ao inserir histórico code_interpreter")
+            print(e)
+            insert_id = None
+        finally:
+            db.commit_close()
+
+        if (insert_id is None):
+            return insert_id
+        
+        return int(insert_id)
+
+
     # Realiza busca no banco de dados local
     # com a documentação python adptada para MarkDown
     @staticmethod

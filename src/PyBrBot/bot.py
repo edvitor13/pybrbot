@@ -22,6 +22,7 @@ class Bot(commands.Bot):
         # Criando loop assíncrono executado a cada 60seg
         loop = Tools.AsyncLoop("Loop Principal [1]", sleep_secs=60)
         loop.add(Interface.change_status)#.run()
+
         # Rodando Loop
         super_loop = Tools.AsyncLoop("Super Loop")
         super_loop.add_all(loop)
@@ -38,6 +39,14 @@ class Bot(commands.Bot):
         
         # Interpreta código python nas mensagens caso o BOT seja mencionado
         await Interface.code_interpreter(message, only_guild=True)
+
+    
+    # Quando uma mensagem for editada
+    async def on_message_edit(
+        self, msg_before:discord.Message, msg_after:discord.Message
+    ):
+        # Interpreta código python da nova mensagem editada
+        await Interface.code_interpreter(msg_after, only_guild=True)
 
 
     # Quando um comando inválido for enviado
