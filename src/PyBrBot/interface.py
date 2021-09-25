@@ -72,22 +72,18 @@ class Interface:
             return None
         
         # Loading
-        loading = BotLoading(message).reaction()
-
-        # Interpretando o código py da msg
-        code_interpreter = []
-        try:
-            # Em no máximo 30 segundos
-            code_interpreter = await AsyncFast.to_async_timeout(
-                30, Functions.code_interpreter, message.content
-            )
-        except:
-            await Interface._code_interpreter_reply(
-                message, "Não foi possível executar seu código =("
-            )
-
-        # Fim loading
-        await loading.close()
+        async with BotLoading(message):
+            # Interpretando o código py da msg
+            code_interpreter = []
+            try:
+                # Em no máximo 30 segundos
+                code_interpreter = await AsyncFast.to_async_timeout(
+                    30, Functions.code_interpreter, message.content
+                )
+            except:
+                await Interface._code_interpreter_reply(
+                    message, "Não foi possível executar seu código =("
+                )
 
         # Mostrando resultado
         i = 1
@@ -206,18 +202,14 @@ class Interface:
             return None
         
         # Loading
-        loading = BotLoading(messageable).reaction(2, stop_after=10)
-
-        # Buscando dados
-        try:
-            embed_data = await AsyncFast.to_async_timeout(
-                10, Functions.search_pydoc, search)
-        except:
-            await messageable.send(
-                f"```\nNão foi possível procurar \"{search}\" =(\n```")
-
-        # Fim loading
-        await loading.close()
+        async with BotLoading(messageable).reaction(2, 10):
+            # Buscando dados
+            try:
+                embed_data = await AsyncFast.to_async_timeout(
+                    10, Functions.search_pydoc, search)
+            except:
+                await messageable.send(
+                    f"```\nNão foi possível procurar \"{search}\" =(\n```")
 
         # Caso não tenha resultado
         if (len(embed_data) == 0):

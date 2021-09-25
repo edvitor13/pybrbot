@@ -29,6 +29,16 @@ class BotLoading:
         self._message_loading:ds.Message = None
         self._message_reaction:ds.Message = None
 
+    # Suporte ao async with
+    async def __aenter__(self):
+        # Caso nenhum loading seja iniciado
+        # iniciará um reaction como padrão
+        if (not self.loading_started()):
+            self.reaction()
+
+    # Suporte ao async with
+    async def __aexit__(self, *args):
+        await self.close()
 
     # Envia mensagem de loading
     # "start_after" a partir de quantos segundos ela será enviada
@@ -59,7 +69,6 @@ class BotLoading:
         )
         return self
 
-
     # Deleta mensagem/reação de loading
     async def close(
         self, message:bool=True, reaction:bool=True
@@ -78,6 +87,14 @@ class BotLoading:
     # Verifica se a reação de loading foi removida
     def closed_reaction(self) -> bool:
         return self._closed_reaction
+
+
+    # Se já existe algum loading iniciado
+    def loading_started(self) -> bool:
+        started_loading = self._message_loading is not None
+        started_reaction = self._message_reaction is not None
+
+        return (started_loading or started_reaction)
 
 
     # Deleta mensagem de loading
@@ -158,6 +175,7 @@ class BotLoading:
 
         # Adicionando reação
         await message.add_reaction(emoji=reaction)
+        
         # Armazenando mensagem reagida
         self._message_reaction = message
         
