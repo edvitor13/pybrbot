@@ -23,6 +23,19 @@ git clone --branch v1.0.1 https://github.com/edvitor13/pybrbot
       - Criação da Tabela "code_interpreter_historic"
          - Responsável por Armazenar informações de identificação das mensagens que tiveram o código interpretado pelo BOT
 
+2. **Criação do módulo "db"**
+   - Módulo criado para organizar e manter todas funcionalidades relacionadas aos Bancos de Dados internos
+      - "database" de "tools" movido para este novo módulo
+      - "Database" não é mais utilizada como meio principal para CRUDS
+      - Super Classe "ActiveRecord" é a nova responsável pelos CRUDS
+         - "ActiveRecord" deve ser implementada nas Entidades responsáveis por representar as tabelas dos bancos de dados
+      - Os sub módulos "pydoc" e "pybrbot" representam os respectivos bancos de dados "pybrbot.db" e "pydoc_ptbr.db"
+         - Nesses módulos são criadas as Entidades que herdarão "ActiveRecord"
+      - "General" representa uma Entidade genérica que ainda foi implementada nos sub módulos de "db"
+   - "Functions" foi refatorada para este novo formato
+   - "ActiveRecord" permite transações mais seguras com suporte ao "with"
+   
+
 
 
 ###### Funções do BOT

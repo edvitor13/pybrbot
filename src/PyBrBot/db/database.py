@@ -20,12 +20,7 @@ class Database(sqlite3.Connection):
 
     # Executa o cursor
     def execute(self, *args, **kwargs) -> sqlite3.Cursor:
-        try:
-            self.cur = self.cursor().execute(*args, **kwargs)
-        except Exception as e:
-            print("[DBERR]", e)
-            self.cur = self.cursor()
-
+        self.cur = self.cursor().execute(*args, **kwargs)
         return self.cur
 
 

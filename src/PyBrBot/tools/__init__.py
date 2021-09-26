@@ -1,6 +1,5 @@
 from .async_loop import AsyncLoop
 from .async_fast import AsyncFast
-from .database import Database
 from .bot_loading import BotLoading
 
 class Tools:
@@ -11,7 +10,4 @@ class Tools:
         pass
 
     class BotLoading(BotLoading):
-        pass
-
-    class Database(Database):
         pass

@@ -2,9 +2,9 @@ import random
 import re
 import requests
 import html
-from datetime import datetime
 from .config import Config
-from .tools import Database
+from .db.pydoc import Docs, Fields
+from .db.pybrbot import CodeInterpreterHistoric
 
 """
 Classe responsável pelas funcionalidades do BOT
@@ -120,28 +120,18 @@ class Functions:
     def _code_interpreter_reply(
         guild_id:int, message_id:int
     ) -> int:
+        with CodeInterpreterHistoric() as cih:
+            cih_select = cih.get(
+                ["reply_id"], where="guild_id = ? and message_id = ?", 
+                data=[guild_id, message_id]
+            )
+            data = cih.last_result
 
-        sql = """
-        SELECT reply_id FROM code_interpreter_historic
-        WHERE guild_id = ? and message_id = ?
-        LIMIT 1
-        """
-
-        try:
-            db = Database(Config.get("database_pybrbot"))
-            db.execute(sql, [guild_id, message_id])
-            data = db.cur.fetchall()
-        except Exception as e:
-            print("[ERR] Falha ao acessar dados code_interpreter_historic")
-            print(e)
-            data = []
-        finally:
-            db.close()
-
-        if (len(data) < 1):
-            return None
-        else:
-            return int(data[0]["reply_id"])
+            if (not cih_select):
+                print("[ERR]", cih.last_exception)
+                return None
+            else:
+                return int(data["reply_id"])
     
 
     # Registra no histórico uma mensagem respondia
@@ -150,97 +140,56 @@ class Functions:
     def _code_interpreter_add_historic(
         guild_id:int, message_id:int, reply_id:int
     ) -> int:
+        with CodeInterpreterHistoric() as cih:
+            with cih.transaction():
+                cih_insert = cih.insert({
+                    "guild_id": guild_id,
+                    "message_id": message_id,
+                    "reply_id": reply_id
+                })
 
-        sql = """
-        INSERT INTO code_interpreter_historic(
-            guild_id, message_id, reply_id
-        )
-        VALUES(?, ?, ?)
-        """
-        
-        try:
-            db = Database(Config.get("database_pybrbot"))
-            db.execute(sql, [guild_id, message_id, reply_id])
-            insert_id = db.cur.lastrowid
-        except Exception as e:
-            print("[ERR] Falha ao inserir histórico code_interpreter")
-            print(e)
-            insert_id = None
-        finally:
-            db.commit_close()
+                lastid = cih.last_result
 
-        if (insert_id is None):
-            return insert_id
-        
-        return int(insert_id)
+                if (not cih_insert):
+                    print("[ERR]", cih.last_exception)
+                    return None
+                else:
+                    return int(lastid)
 
 
     # Realiza busca no banco de dados local
     # com a documentação python adptada para MarkDown
     @staticmethod
-    def search_pydoc(search:str, limit:int=6) -> dict:
-
-        sql = f"""SELECT 
-            d2.title AS parent_title, d2.url AS parent_url, 
-            d1.id, d1.title, d1.original_title, d1.description,
-            d1.url, d1.color, d1.visible, d1.revised, d1.timestamp
-        FROM 
-            docs AS d1
-        LEFT JOIN 
-            docs AS d2 
-            ON d1.parent_id = d2.id
-        WHERE 
-            (
-                nr(d1.title) LIKE nr(?) OR 
-                nr(d1.original_title) LIKE nr(?)
-            )
-            AND
-            d1.visible = 1
-        ORDER BY CASE
-            WHEN d1.revised > 0 THEN 1
-            WHEN nr(d1.original_title) LIKE nr(?) THEN 2
-            WHEN nr(d1.title) LIKE nr(?) THEN 3
-            WHEN nr(d1.title) LIKE nr(?) THEN 4
-            WHEN nr(d1.original_title) LIKE nr(?) THEN 5
-            ELSE 6
-        END
-        LIMIT {limit};"""
-
-        replacers = list(
-            map(lambda s: s.replace("[S]", search), [
-                '%[S]%', '%[S]%', 'class [S]%', 
-                '`[S]`%', '[S]%', '[S]%'
-            ])
-        )
-        
-        # 1. Acessando banco e realizando busca
-        db = Database(Config.get("database_pydoc"))
-        db.execute(sql, replacers)
-        docs = db.cur.fetchall()
-        
-        # Caso não tenha nenhum resultado
-        if (len(docs) < 1):
-            return {}
+    def search_pydoc(
+        search:str, limit:int=6
+    ) -> dict:
+        # 1. Realizando busca
+        with Docs() as do:
+            docs_search = do.search(search, limit)
+            docs = do.last_result
+            
+            # Caso não tenha nenhum resultado
+            if (not docs_search or len(docs) < 1):
+                return {}
         
         # 2. Estrutura dos dados de retorno
         # fields[]: {"name": "", "value": "", "inline": False}
         # author: { "name": "", "url": "" }
+        # "color": 2397395, # azul
         embed_data = {
             "title": "",
             "description": "",
             "url": "",
-            #"color": 2397395, # azul
             "fields": []
         }
 
-        # Responsável por remover trechos
-        # bagunçados dos textos
+        # Remove trechos bagunçados dos textos
         def remove_trash(text:str):
-            # Removendo espaços após quebra de linha
+            # Espaços após quebra de linha
             text = re.sub(r'\n +', '\n', text)
-            # Removendo informação bugada de tabela
+            # Informação bugada de tabela
             text = re.sub(r'\|.*?\n', '', text)
-            # Removendo 3+ quebras de linha seguidas
+            # 3+ quebras de linha seguidas
             text = re.sub(r'\n\n\n+', '', text)
 
             return text
@@ -249,36 +198,45 @@ class Functions:
         sec_result_content = ""
         for i, doc in enumerate(docs):
             # Resultado Principal
-            if (i == 0):
+            is_first_occurrence = (i == 0)
+            
+            if (is_first_occurrence):
                 # 3.1. Adicionando "Author"
                 # Nome
                 if (doc['parent_title'] is not None):
                     if ("author" not in embed_data):
                         embed_data["author"] = {}
                     embed_data["author"]["name"] = doc['parent_title']
+                
                 # Url
                 if (doc['parent_url'] is not None):
                     if ("author" not in embed_data):
                         embed_data["author"] = {}
                     embed_data["author"]["url"] = doc['parent_url']
 
-                # 3.2. Título, Descrição, Url
+                # 3.2. 
+                # Título
                 embed_data['title'] = Functions._limit_text(
                     doc['title'], 250
                 )
+                # Descrição
                 embed_data['description'] = Functions._limit_text(
                     remove_trash(doc['description']), 650, 
                     re_secure_zones="```.*?```|\[.*?\]\(.*?\)|`.*?`|\*\*.*?\*\*|\*.*?\*"
                 )
+                # Url
                 embed_data['url'] = doc['url']
                 
                 # 3.3. Selecionando Fields
-                sql = """SELECT name, value, inline
-                FROM fields
-                WHERE doc_id = ? AND visible = 1
-                """
-                db.execute(sql, [doc['id']])
-                fields = db.cur.fetchall()
+                with Fields() as fi:
+                    fields_select = fi.select(
+                        ["name", "value", "inline"],
+                        where="doc_id = ? AND visible = 1",
+                        data=[doc['id']]
+                    )
+
+                    fields = [] if not fields_select else fi.last_result
+                
                 for field in fields:
                     embed_data['fields'].append({
                         "name": field['name'],
@@ -298,18 +256,14 @@ class Functions:
                 )
                 sec_result_content += f"• [{title}]({doc['url']}) "
 
-        # Criando e adicionando field
-        # "Ver mais"
+        # Criando e adicionando field "Ver mais"
         if (len(sec_result_content.strip()) > 0):
             embed_data['fields'].append({
                 "name": "⠀",
                 "value": "> " + sec_result_content[1:].strip(),
                 "inline": False
             })
-            
-        # 4. Fechando banco
-        db.close()
-
+        
         return embed_data
     
     
