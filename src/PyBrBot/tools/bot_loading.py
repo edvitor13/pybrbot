@@ -29,16 +29,16 @@ class BotLoading:
         self._message_loading:ds.Message = None
         self._message_reaction:ds.Message = None
 
+
     # Suporte ao async with
     async def __aenter__(self):
-        # Caso nenhum loading seja iniciado
-        # iniciará um reaction como padrão
-        if (not self.loading_started()):
-            self.reaction()
+        pass
+
 
     # Suporte ao async with
     async def __aexit__(self, *args):
         await self.close()
+
 
     # Envia mensagem de loading
     # "start_after" a partir de quantos segundos ela será enviada

@@ -72,7 +72,7 @@ class Interface:
             return None
         
         # Loading
-        async with BotLoading(message):
+        async with BotLoading(message).reaction():
             # Interpretando o código py da msg
             code_interpreter = []
             try:
