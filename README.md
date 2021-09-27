@@ -18,6 +18,10 @@ git clone --branch v1.0.1 https://github.com/edvitor13/pybrbot
 
 ###### Modificações em Andamento 1.1.0 Alpha
 
+0. **Bugs pendentes**
+   1. A ordem das linguagens na configuração "execute_code_api" pode apresentar resultados diferentes
+      - Ex: caso "java" esteja ordenado primeiro que "javascript", ele poderá ser executado no lugar de "javascript"
+
 1. **Suporte para edição de código já interpretado pelo Bot**
    - Criação do banco de dados "pybrbot.db"
       - Criação da Tabela "code_interpreter_historic"
@@ -35,6 +39,13 @@ git clone --branch v1.0.1 https://github.com/edvitor13/pybrbot
    - "Functions" foi refatorada para este novo formato
    - "ActiveRecord" permite transações mais seguras com suporte ao "with"
    
+3. **Interpretação de código em múltiplas linguagens**
+   - "Interface.code_interpreter" e "Functions.code_interpreter" refatorados
+   - Removido o suporte para "Resultados" com mais **2000** caracteres
+      - Antes era enviado um arquivo "txt" no lugar da mensagem, agora obrigatoriamente deve conter no máximo 2000 caracteres para ser exibido
+   - Descontinuadas as configurações "py_execute_code_api_url" e "py_execute_code_api_data"
+      - Substituídas pela configuração "execute_code_api" que contempla as configurações de API de várias linguagens
+
 
 
 

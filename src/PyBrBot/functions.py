@@ -1,5 +1,6 @@
 import random
 import re
+import time
 import requests
 import html
 from .config import Config
@@ -52,65 +53,128 @@ class Functions:
         
         return final_reactions
 
-
+    
     # Retorn o código python da mensagem interpretado
-    @staticmethod
-    def code_interpreter(message:str, merge:bool=True) -> list:
-        
-        # 1. Tag responsável por informar os códigos
-        # que devem ser ignorados: @ignorar:1,3
-        ignored_numbers = []
-        if ("@ignorar:" in message):
-            # Verificando se existe a tag na mensagem
-            regex = r"@ignorar:([0-9,]*)|@ignorar:([0-9]*)"
-            matches = re.finditer(regex, message, re.MULTILINE | re.IGNORECASE | re.DOTALL)
+    def code_interpreter(message:str, timeout:int=15) -> list:
+        extracted_code = Functions._code_interpreter_extract_codes(message)
 
-            # Números dos códigos que serão ignorados
-            ignored_numbers = [numbers.split(",") for match in matches 
-                for numbers in match.groups() if numbers != None]
+        results = []
+        for data in extracted_code.values():
+            # Api
+            api_url = data["url"]
+            api_data = data["data"]
+            api_data = {
+                k:v.replace("%code%", data["all_codes"]) 
+                for k, v in api_data.items()
+            }
 
-            # Caso tenha obtido algum resultado
-            if (len(ignored_numbers) > 0):
-                ignored_numbers = [int(number.strip()) for number 
-                    in ignored_numbers[0] if number.strip() != '']
-            else:
-                ignored_numbers = []
-
-        # 2. Obtendo trechos de código python da mensagem
-        regex = r"```py\n(.*?)```"
-        matches = re.finditer(regex, message, re.MULTILINE | re.IGNORECASE | re.DOTALL)
-        # Lista de códigos
-        pycodes = [code for match in matches for code in match.groups()]
-        pycodes = [pycode for i, pycode in enumerate(pycodes, start=1) if i not in ignored_numbers]
-
-        # 3. Verificar se deve mesclar todos trechos de código
-        if (merge and len(pycodes) > 1 and "@interpretarSeparadamente" not in message):
-            pycodes = ["\n".join(pycodes)]
-
-        # 4. Realizando interpretação dos códigos
-        interpreted_pycodes = []
-        for pycode in pycodes:
-            # Url da API
-            api_url = Config.get('py_execute_code_api_url')
-            api_data = Config.get('py_execute_code_api_data')
-            api_data = {key:val.replace("%code%", pycode) for key, val in api_data.items()}
+            result = { 
+                "lang": api_data["lang"],
+                "result": None,
+                "time": None
+            }
 
             # Coleta, filtragem e armazenamento do resultado
             try:
+                _start_time = time.time()
+                
                 request_interpret = requests.post(
-                    api_url, data=api_data, timeout=10
-                )
+                    api_url, data=api_data, timeout=timeout)
+                
+                result["time"] = time.time() - _start_time
+
+                # Compensando o tempo de delay
+                if (result["time"] > 1):
+                    result["time"] -= 1
 
                 if (request_interpret.status_code == 200):
-                    interpreted_pycode = html.unescape(
-                        request_interpret.text).split("<br>", 1
-                    )[1]
-                    interpreted_pycodes.append(interpreted_pycode)
-            except:
-                interpreted_pycodes.append("Falha ao interpretar código =(")
+                    interpreted_code = html.unescape(
+                        request_interpret.text)
+
+                    if ("<br>" in interpreted_code):
+                        interpreted_code = interpreted_code.split("<br>")[-1]
+                    
+                    result["result"] = interpreted_code
+
+            except Exception as e:
+                result["result"] = "Falha ao interpretar código"
+
+            results.append(result)
+
+        return results
+    
+
+    def _code_interpreter_extract_codes(message:str) -> dict:
+        regex = r"```([a-z0-9]*)(.*?)```"
+
+        matches = re.finditer(
+            regex, message, re.IGNORECASE | re.DOTALL | re.MULTILINE)
+
+        codes = {}
+        for match in matches:
+            lang = match.group(1).strip().lower()
+            code = match.group(2).strip()
+
+            if (len(lang) < 1):
+                continue
+
+            if (lang not in codes):
+                codes[lang] = {}
+                codes[lang]["codes"] = []
+                codes[lang]["all_codes"] = ""
+            
+            codes[lang]["codes"].append(code)
+            codes[lang]["all_codes"] += f"{code}\n\n"
         
-        # 5. Retornando resultado
-        return list(zip(pycodes, interpreted_pycodes))
+        codes = Functions.__code_interpreter_set_langs_api(codes)
+
+        return codes
+
+    
+    def __code_interpreter_set_langs_api(extracted_code:dict) -> dict:
+        config = Config.get('execute_code_api')
+        
+        _url = config.pop("url")
+        _data = config.pop("data")
+
+        # Filtrando códigos válidos com base nas APIs
+        # E inserindo informações da API
+        _extracted_code = {}
+        for extr_lang, extr_data in extracted_code.items():
+            
+            for langs, data in config.items():
+                if (extr_lang in langs):
+                    data["url"] = data["url"] if "url" in data else _url
+                    data["data"] = {**_data, **data["data"]}
+
+                    _extracted_code[extr_lang] = {**extr_data, **data}
+
+        # Mesclando mesmos tipos de códigos
+        # escritos de formas diferentes
+        # Ex: py e python
+        remove_langs = []
+        for lang1, data1 in _extracted_code.items():
+            
+            if (lang1 in remove_langs):
+                continue
+
+            for lang2, data2 in _extracted_code.items():
+                diff_lang = lang1 != lang2
+                equal_api = data1["data"] == data2["data"]
+
+                if (diff_lang and equal_api):
+                    data1["codes"] += data2["codes"]
+                    data1["all_codes"] += f"{data2['all_codes']}\n\n"
+
+                    _extracted_code[lang1] = data1
+                    remove_langs.append(lang2)
+
+        # Removendo tipos que foram mesclados
+        _extracted_code = {
+            k:v for k,v in _extracted_code.items() if k not in remove_langs
+        }
+
+        return _extracted_code
 
 
     # Verificar se já existe uma mensagem respondida

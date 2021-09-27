@@ -8,8 +8,19 @@
     "status":"Python 3.9",
     "database_pydoc":"src/databases/pydoc_ptbr.db",
     "database_pybrbot":"src/databases/pybrbot.db",
-    "py_execute_code_api_url":"",
-    "py_execute_code_api_data":{},
+    "execute_code_api": {
+        "url": "URL PADRÃO DA API",
+        "data": {
+            "code": "%code%"
+        },
+        "py": {
+            "data": {"lang": "python3"}
+        },
+        "c": {
+            "url": "EX. URL DA API EXCLUSIVA PARA O C",
+            "data": {"c_code":"%code%","c_lang": "c"}
+        }
+    },
     "welcome_embed": {
         "title": "Boas vindas!!",
         "description": "Mensagem de boas vindas. Você pode utilizar %mentioned% para mencionar o novo membro nesta mensagem.",

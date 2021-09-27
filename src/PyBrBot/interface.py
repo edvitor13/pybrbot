@@ -53,11 +53,11 @@ class Interface:
                 add_reaction = get(Interface.bot.emojis, name=reaction)
                 await message.add_reaction(emoji=add_reaction)
 
-    
+
     # Interpreta código Python da mensagem
     @staticmethod
     async def code_interpreter(
-        message:ds.Message, only_guild:bool=True, only_result:bool=True
+        message:ds.Message, only_guild:bool=True
     ) -> None:
         # Verificar se aceitará mensagens diretas ao bot
         if (message.guild is None and only_guild):
@@ -65,10 +65,9 @@ class Interface:
         
         # Condições para iniciar
         bot_mentioned = Interface.bot.user.mentioned_in(message)
-        contain_pycode = "```py" in message.content
         is_bot = message.author.bot
 
-        if not (bot_mentioned and contain_pycode and not is_bot):
+        if not (bot_mentioned and not is_bot):
             return None
         
         # Loading
@@ -78,77 +77,42 @@ class Interface:
             try:
                 # Em no máximo 30 segundos
                 code_interpreter = await AsyncFast.to_async_timeout(
-                    30, Functions.code_interpreter, message.content
-                )
-            except:
+                    30, Functions.code_interpreter, message.content)
+            except Exception as e:
+                print(e)
                 await Interface._code_interpreter_reply(
-                    message, "Não foi possível executar seu código =("
-                )
+                    message, "```Não foi possível executar seu código =(```")
 
         # Mostrando resultado
         i = 1
-        for code, result in code_interpreter:
+        final_msg_result = ""
+        for _code in code_interpreter:
+            lang = _code["lang"]
+            time = _code["time"]
+            result = _code["result"]
+
             # Caso resultado esteja vazio
             if (len(result.strip()) < 1):
-                result = (
-                    "Seu código não possui nenhum " 
+                result = "Seu código não possui nenhum " \
                     "'print' com conteúdo para ser exibido =("
-                )
-            
-            # Mensagem com o código executado
-            msg_exec = f"**Executando o código:**\n```py\n{code}```"
 
             # Mensagem com o resultado
-            msg_result = f"**Resultado:**```\n{result}"
-            msg_result += "```" if i == len(code_interpreter) else "```⠀"
+            #msg_result = f"Resultado **{lang}** em: `{time}`segs```\n{result}"
+            msg_result = f"Resultado em **{lang}**```\n{result}"
+            msg_result += "```" if i == len(code_interpreter) else "```\n"
 
-            # Mensagem final
-            msg = msg_exec + msg_result
-            
-            # Verificando se mensagem não passa do limite de chars.
-            if (len(msg) < 2000):
-                if (not only_result):
-                    await Interface._code_interpreter_reply(
-                        message, msg, mention_author=True
-                    )
-                else:
-                    await Interface._code_interpreter_reply(
-                        message, msg_result, mention_author=True
-                    )
-            else:
-                # Código
-                if (not only_result):
-                    if (len(msg_exec) <= 2000):
-                        await Interface._code_interpreter_reply(
-                            message, msg_exec, mention_author=True
-                        )
-                    else:
-                        # Enviando arquivo com código
-                        code_file = StringIO(code)
-                        await Interface._code_interpreter_reply(
-                            message,
-                            f'**Executando o código:**', 
-                            file=ds.File(code_file, "CodigoExecutado.py"),
-                            mention_author=True
-                        )
-                        code_file.close()
+            final_msg_result += msg_result
 
-                # Resultado
-                if (len(msg_result) <= 2000):
-                    await Interface._code_interpreter_reply(
-                        message, msg_result, mention_author=True
-                    )
-                else:
-                    # Enviando arquivo com resultado
-                    result_file = StringIO(result)
-                    await Interface._code_interpreter_reply(
-                        message,
-                        f'**Resultado:**', 
-                        file=ds.File(result_file, "Resultado.txt"),
-                        mention_author=True
-                    )
-                    result_file.close()
             i += 1
+
+        # Verificando se mensagem não passa do limite de chars.
+        if (len(final_msg_result) <= 2000):
+            await Interface._code_interpreter_reply(message, final_msg_result)
+        else:
+            await Interface._code_interpreter_reply(message, 
+                "```Resultado muito longo para ser exibido no discord```")
+
+        return None
 
 
     # Responsável por enviar conteúdo de resposta
@@ -177,9 +141,10 @@ class Interface:
         else:
             try:
                 context = await Interface.bot.get_context(message)
-                
                 reply_msg = await context.fetch_message(reply_id)
+
                 msg = await reply_msg.edit(content=args[0])
+
             except Exception as e:
                 print("[ERR] Falha ao editar mensagem 'code_interpreter'")
                 print(e)
