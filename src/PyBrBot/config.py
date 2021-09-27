@@ -7,8 +7,8 @@ do arquivo config.json
 """
 class Config:
 
-    _last_modify = None
-    _config = None
+    _last_modify:float = None
+    _config:dict = None
     
     # Carrega as configurações do arquivo config.json
     @staticmethod
@@ -29,12 +29,17 @@ class Config:
     # Acessa o dicionário das configurações ou uma key específica
     @staticmethod
     def get(config_name:str=None, config_filename:str="config.json") -> dict:
-        Config._load()
+        Config._load(config_filename)
+
+        config = Config._config.copy()
 
         if (config_name is not None):
             try:
-                return Config._config[config_name]
+                try:
+                    return config[config_name].copy()
+                except:
+                    return config[config_name]
             except:
                 raise Exception(f"Failed to access \"{config_name}\" configuration.")
 
-        return Config._config
+        return config
