@@ -8,13 +8,15 @@
     "status":"Python 3.9",
     "database_pydoc":"src/databases/pydoc_ptbr.db",
     "database_pybrbot":"src/databases/pybrbot.db",
+    "imgbb_api_key":"KEY DE IMGBB API DE UPLOAD DE IMAGENS",
     "execute_code_api": {
         "url": "URL PADRÃO DA API",
         "data": {
             "code": "%code%"
         },
         "py": {
-            "data": {"lang": "python3"}
+            "data": {"lang": "python3"},
+            "basecode": "src/basecodes/PYBRBOT.py"
         },
         "c": {
             "url": "EX. URL DA API EXCLUSIVA PARA O C",

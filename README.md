@@ -46,6 +46,10 @@ git clone --branch v1.0.1 https://github.com/edvitor13/pybrbot
    - Descontinuadas as configurações "py_execute_code_api_url" e "py_execute_code_api_data"
       - Substituídas pela configuração "execute_code_api" que contempla as configurações de API de várias linguagens
 
+4. **Classe de suporte para códigos Python**
+   - Agora, através dos Basecodes "src/basecodes/PYBRBOT.py", todo código Python interpretado pelo BOT terá a Classe "PYBRBOT" disponível
+      - Uma de suas vantagens é a de possibilitar o acesso aos arquivos anexados na mensagem do Discord para utilização no código, através do método estático "PYBRBOT.ARQUIVOS" que recebe como argumento o nome do arquivo anexado
+   - O local do Basecode deve ser informado na configuração "execute_code_api" -> "lang" -> "basecode", sendo que "lang" representa cada linguagem disponível (basecode não é uma configuração obrigatória)
 
 
 

@@ -1,8 +1,11 @@
 import random
 import re
 import time
+from typing import Union
 import requests
 import html
+import json
+import base64
 from .config import Config
 from .db.pydoc import Docs, Fields
 from .db.pybrbot import CodeInterpreterHistoric
@@ -55,8 +58,11 @@ class Functions:
 
     
     # Retorn o código python da mensagem interpretado
-    def code_interpreter(message:str, timeout:int=15) -> list:
+    def code_interpreter(message:str, file:dict={}, timeout:int=15) -> list:
         extracted_code = Functions._code_interpreter_extract_codes(message)
+        extracted_code = Functions._code_interpreter_load_basecode(
+            extracted_code, file
+        )
 
         results = []
         for data in extracted_code.values():
@@ -94,7 +100,13 @@ class Functions:
                     if ("<br>" in interpreted_code):
                         interpreted_code = interpreted_code.split("<br>")[-1]
                     
-                    result["result"] = interpreted_code
+                    # Fazendo upload de imagens caso exista
+                    imgbb = Functions._code_interpreter_imgbb_api_upload(
+                        interpreted_code
+                    )
+
+                    result["result"] = imgbb[0]
+                    result["result_images"] = imgbb[1]
 
             except Exception as e:
                 result["result"] = "Falha ao interpretar código"
@@ -102,8 +114,99 @@ class Functions:
             results.append(result)
 
         return results
+
+
+    # Faz upload de IMG HTML B64 no serviço imgbb
+    # e substitui as TAGs HTML pela URL retornada
+    def _code_interpreter_imgbb_api_upload(
+        code_result:str
+    ) -> tuple[str, str]:
+        regex = r"<img *src *= *\"data:.*?base64,(.*?)\" .*?/>"
+
+        matches = re.finditer(
+            regex, code_result, re.IGNORECASE | re.DOTALL | re.MULTILINE)
+
+        def upload_imgbb(img_base64:str) -> Union[str, bool]:
+            api_url = "https://api.imgbb.com/1/upload"
+            api_data = {
+                "key": Config.get("imgbb_api_key"),
+                "image": img_base64
+            }
+
+            upload = requests.post(
+                    api_url, data=api_data, timeout=10)
+
+            if (upload.status_code == 200):
+                upload = json.loads(upload.text)
+
+                if ("success" in upload and upload["success"]):
+                    return upload["data"]["url"]
+
+            return False
+
+        images = ""
+        count = 1
+        for match in matches:
+            img_html = match.group(0).strip()
+            img_base64 = match.group(1).strip()
+            
+            img_url = upload_imgbb(img_base64)
+            img_placeholder = f""
+
+            if (img_url is False):
+                img_placeholder = f"<IMG {count}: ERRO AO FAZER UPLOAD>"
+            
+            images += f"IMG {count}: {img_url}>\n"
+
+            code_result = code_result.replace(
+                img_html, img_placeholder)
+            
+            count += 1
+
+        return code_result, images
     
 
+    # 
+    def _code_interpreter_load_basecode(
+        extracted_code:dict, file:dict={}
+    ) -> dict:
+        def download_insert_file(file:dict, code:str):
+            if (len(file) < 2):
+                code = code.replace("%PYBRBOT_FILES%", "")
+                return code
+
+            try:
+                get = requests.get(file["url"])
+                b64_file = base64.b64encode(get.content).decode()
+            except Exception as e:
+                code = code.replace("%PYBRBOT_FILES%", "")
+                return code
+
+            if (get.status_code != 200):
+                code = code.replace("%PYBRBOT_FILES%", "")
+                return code
+            
+            b64_file_insert = f'{file["name"]}": "{b64_file}'
+            code = code.replace("%PYBRBOT_FILES%", b64_file_insert)
+
+            return code
+
+        for flag, data in extracted_code.items():
+            if ("basecode" in data):
+                with open(data["basecode"], "r", encoding="utf8") as _file:
+                    code = _file.read() + "\n"
+                
+                code = download_insert_file(file, code)
+
+                extracted_code[flag]["codes"].insert(0, code)
+                extracted_code[flag]['all_codes'] = \
+                    f"{code}\n{data['all_codes']}"
+        
+        return extracted_code
+
+
+
+    # Extrai os códigos da mensagem
     def _code_interpreter_extract_codes(message:str) -> dict:
         regex = r"```([a-z0-9]*)(.*?)```"
 

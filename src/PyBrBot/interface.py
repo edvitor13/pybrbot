@@ -50,8 +50,12 @@ class Interface:
             )
             # Adiciona cada reação
             for reaction in reactions:
-                add_reaction = get(Interface.bot.emojis, name=reaction)
-                await message.add_reaction(emoji=add_reaction)
+                try:
+                    add_reaction = get(Interface.bot.emojis, name=reaction)
+                    await message.add_reaction(emoji=add_reaction)
+                except Exception as e:
+                    print(f"[ERR] Falha ao reagir automaticamente {add_reaction}")
+                    print(e)
 
 
     # Interpreta código Python da mensagem
@@ -72,12 +76,18 @@ class Interface:
         
         # Loading
         async with BotLoading(message).reaction():
+            # Verificando se tem arquvios anexados
+            file = {}
+            if (len(message.attachments) > 0):
+                file["name"] = message.attachments[0].filename
+                file["url"] = message.attachments[0].url
+            
             # Interpretando o código py da msg
             code_interpreter = []
             try:
                 # Em no máximo 30 segundos
                 code_interpreter = await AsyncFast.to_async_timeout(
-                    30, Functions.code_interpreter, message.content)
+                    30, Functions.code_interpreter, message.content, file)
             except Exception as e:
                 print(e)
                 await Interface._code_interpreter_reply(
@@ -90,16 +100,25 @@ class Interface:
             lang = _code["lang"]
             time = _code["time"]
             result = _code["result"]
+            result_images = _code["result_images"]
 
             # Caso resultado esteja vazio
             if (len(result.strip()) < 1):
                 result = "Seu código não possui nenhum " \
-                    "'print' com conteúdo para ser exibido =("
+                    "'print' com conteúdo para ser exibido"
 
             # Mensagem com o resultado
             #msg_result = f"Resultado **{lang}** em: `{time}`segs```\n{result}"
-            msg_result = f"Resultado em **{lang}**```\n{result}"
-            msg_result += "```" if i == len(code_interpreter) else "```\n"
+            msg_result = f"\nResultado em **{lang}**```\n{result}"
+            
+            lci = len(code_interpreter)
+
+            if (len(result_images) < 1):
+                msg_result += "```" if i == lci else "```\n"
+                msg_result += result_images
+            else:
+                msg_result += "```" 
+                msg_result += f"\n{result_images}"
 
             final_msg_result += msg_result
 
