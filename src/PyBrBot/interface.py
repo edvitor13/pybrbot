@@ -103,21 +103,19 @@ class Interface:
             result_images = _code["result_images"]
 
             # Caso resultado esteja vazio
-            if (len(result.strip()) < 1):
+            if (not result and not result_images):
                 result = "Seu código não possui nenhum " \
                     "'print' com conteúdo para ser exibido"
+            
+            result = f"```\n{result}```" if result else ""
 
             # Mensagem com o resultado
-            #msg_result = f"Resultado **{lang}** em: `{time}`segs```\n{result}"
-            msg_result = f"\nResultado em **{lang}**```\n{result}"
+            msg_result = f"\nResultado em **{lang}**{result}"
             
-            lci = len(code_interpreter)
-
-            if (len(result_images) < 1):
-                msg_result += "```" if i == lci else "```\n"
-                msg_result += result_images
+            if (not result_images):
+                is_last_ci = i == len(code_interpreter)
+                msg_result += "" if is_last_ci else "\n"
             else:
-                msg_result += "```" 
                 msg_result += f"\n{result_images}"
 
             final_msg_result += msg_result
