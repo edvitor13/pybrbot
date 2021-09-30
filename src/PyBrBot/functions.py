@@ -58,6 +58,7 @@ class Functions:
 
     
     # Retorn o código python da mensagem interpretado
+    @staticmethod
     def code_interpreter(message:str, file:dict={}, timeout:int=15) -> list:
         extracted_code = Functions._code_interpreter_extract_codes(message)
         extracted_code = Functions._code_interpreter_load_basecode(
@@ -118,6 +119,7 @@ class Functions:
 
     # Faz upload de IMG HTML B64 no serviço imgbb
     # e substitui as TAGs HTML pela URL retornada
+    @staticmethod
     def _code_interpreter_imgbb_api_upload(
         code_result:str
     ) -> tuple[str, str]:
@@ -166,7 +168,9 @@ class Functions:
         return code_result, images
     
 
-    # 
+    # Carrega basecodes "src/basecode"
+    # de cada linguagem caso tenha sido configurado
+    @staticmethod
     def _code_interpreter_load_basecode(
         extracted_code:dict, file:dict={}
     ) -> dict:
@@ -205,8 +209,8 @@ class Functions:
         return extracted_code
 
 
-
     # Extrai os códigos da mensagem
+    @staticmethod
     def _code_interpreter_extract_codes(message:str) -> dict:
         regex = r"```([a-z0-9]*)(.*?)```"
 
@@ -233,7 +237,8 @@ class Functions:
 
         return codes
 
-    
+
+    @staticmethod
     def __code_interpreter_set_langs_api(extracted_code:dict) -> dict:
         config = Config.get('execute_code_api')
         
