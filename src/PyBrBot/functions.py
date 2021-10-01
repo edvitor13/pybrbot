@@ -1,7 +1,7 @@
+from typing import Union
 import random
 import re
 import time
-from typing import Union
 import requests
 import html
 import json
@@ -228,10 +228,8 @@ class Functions:
     # Extrai os códigos da mensagem
     @staticmethod
     def _code_interpreter_extract_codes(message:str) -> dict:
-        regex = r"```([a-z0-9]*)(.*?)```"
 
-        matches = re.finditer(
-            regex, message, re.IGNORECASE | re.DOTALL | re.MULTILINE)
+        matches = Functions._code_interpreter_match_codes(message)
 
         codes = {}
         for match in matches:
@@ -254,6 +252,20 @@ class Functions:
         return codes
 
 
+    # Retorna todas as matches encontradas via regex
+    # de trechos de códigos contidos na mensagem
+    @staticmethod
+    def _code_interpreter_match_codes(message:str) -> list[re.Match]:
+        regex = r"```([a-z0-9]*)(.*?)```"
+
+        matches = re.finditer(
+            regex, message, re.IGNORECASE | re.DOTALL | re.MULTILINE)
+
+        return list(matches)
+
+
+    # Adiciona a url e os dados base de
+    # cada linguagem já configurada
     @staticmethod
     def __code_interpreter_set_langs_api(extracted_code:dict) -> dict:
         config = Config.get('execute_code_api')

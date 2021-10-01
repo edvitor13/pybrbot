@@ -87,12 +87,15 @@ class Interface:
         # Condições para iniciar
         bot_mentioned = Interface.bot.user.mentioned_in(message)
         is_bot = message.author.bot
+        exist_code = len(
+            Functions._code_interpreter_match_codes(message.content)
+        ) > 0
 
-        if not (bot_mentioned and not is_bot):
+        if not (bot_mentioned and not is_bot and exist_code):
             return None
         
         # Loading
-        async with BotLoading(message).reaction():
+        async with BotLoading(message).reaction(0.1):
             # Verificando se tem arquvios anexados
             file = {}
             if (len(message.attachments) > 0):
