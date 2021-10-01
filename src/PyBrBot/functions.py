@@ -21,6 +21,22 @@ class Functions:
     @staticmethod
     def get_status():
         return Config.get('status')
+    
+
+    # Retorna se a função do Bot está ativa ou
+    # não através da configuração "bot_functions"
+    @staticmethod
+    def bot_function(method:callable) -> bool:
+        method_name = method.__name__
+        config_functions = Config.get("bot_functions")
+        
+        if (method_name not in config_functions):
+            return True
+        
+        active_method = config_functions[method_name]
+
+        return bool(active_method)
+
 
     # Retorna as reações com base na mensagem
     @staticmethod

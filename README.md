@@ -51,6 +51,11 @@ git clone --branch v1.0.1 https://github.com/edvitor13/pybrbot
       - Uma de suas vantagens é a de possibilitar o acesso aos arquivos anexados na mensagem do Discord para utilização no código, através do método estático "PYBRBOT.ARQUIVOS" que recebe como argumento o nome do arquivo anexado
    - O local do Basecode deve ser informado na configuração "execute_code_api" -> "lang" -> "basecode", sendo que "lang" representa cada linguagem disponível (basecode não é uma configuração obrigatória)
 
+5. **Ativar e desativar funções do Bot via configuração**
+   - Criada a configuração "bot_functions", que recebe um dicionário contendo como chave os nomes das funções de Interface. Cada chave possui como valor **true ou false**, representando se a função está **ativada ou não**
+   - Por padrão (caso não esteja no arquivo de configurações) toda função é tida como ativada, sendo que, para ela ser considerada uma "função do bot", ela deve conter o decorador "Interface.bot_function"
+
+
 
 
 ###### Funções do BOT

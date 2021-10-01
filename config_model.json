@@ -3,11 +3,32 @@
     "test_token":"TOKEN DO BOT DE TESTES - CASO TENHA",
     "bot_commands_prefix":[".py ", "."],
     "test_bot_commands_prefix":["$py ", "$"],
+
+    "status":"Python 3.9",
+
+    "bot_functions": {
+        "change_status": true,
+        "automatic_reaction_emojis": true,
+        "code_interpreter": false,
+        "search_pydoc": true,
+        "welcome_dm_message": false
+    },
+
     "loading_icon":"src/media/img/system/loading_50.gif",
     "loading_emoji":"LOADING",
-    "status":"Python 3.9",
+
     "database_pydoc":"src/databases/pydoc_ptbr.db",
     "database_pybrbot":"src/databases/pybrbot.db",
+    
+    "welcome_embed": {
+        "title": "Boas vindas!!",
+        "description": "Mensagem de boas vindas. Você pode utilizar %mentioned% para mencionar o novo membro nesta mensagem.",
+        "color": 16753408,
+        "thumbnail": {
+          "url": "URL DA IMAGEM - CASO NÃO TENHA, REMOVA O 'thumbnail'"
+        }
+    },
+
     "imgbb_api_key":"KEY DE IMGBB API DE UPLOAD DE IMAGENS",
     "execute_code_api": {
         "url": "URL PADRÃO DA API",
@@ -23,14 +44,7 @@
             "data": {"c_code":"%code%","c_lang": "c"}
         }
     },
-    "welcome_embed": {
-        "title": "Boas vindas!!",
-        "description": "Mensagem de boas vindas. Você pode utilizar %mentioned% para mencionar o novo membro nesta mensagem.",
-        "color": 16753408,
-        "thumbnail": {
-          "url": "URL DA IMAGEM - CASO NÃO TENHA, REMOVA O 'thumbnail'"
-        }
-    },
+
     "automatic_reaction_emojis" : [
         [["python", "py", "py3"], ["PYTHON", "PYBR"]],
         [["github", "github. "], ["GITHUB"]],

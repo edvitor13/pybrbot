@@ -11,7 +11,21 @@ de PyBrBot.Functions com Bot e Commands
 """
 class Interface:
 
+    # Instância carregada do BOT
     bot:ds.Client = None
+
+    # Funções decoradoras
+    
+    # Responsável por executar o método caso
+    # ele esteja configurado como "true" em
+    # "bot_functions"
+    def bot_function(method):
+        def return_method(*args, **kwargs):
+            if (Functions.bot_function(method)):
+                return method(*args, **kwargs)
+        
+        return return_method
+
 
     # Carrega a instância de Bot para Interface
     @staticmethod
@@ -21,6 +35,7 @@ class Interface:
 
     # Atualizando status, caso diferente
     @staticmethod
+    @bot_function
     async def change_status(
         status_message:str=None
     ) -> None:
@@ -35,6 +50,7 @@ class Interface:
 
     # Adiciona reações com base na mensagem
     @staticmethod
+    @bot_function
     async def automatic_reaction_emojis(
         message:ds.Message, only_guild:bool=True
     ) -> None:
@@ -60,6 +76,7 @@ class Interface:
 
     # Interpreta código Python da mensagem
     @staticmethod
+    @bot_function
     async def code_interpreter(
         message:ds.Message, only_guild:bool=True
     ) -> None:
@@ -173,6 +190,7 @@ class Interface:
     # Exibe informações da documentação
     # via busca por texto
     @staticmethod
+    @bot_function
     async def search_pydoc(
         messageable:ds.abc.Messageable, search:str=""
     ) -> None:
@@ -206,6 +224,7 @@ class Interface:
     # Envia mensagem direta de boas vindas
     # aos novos membros
     @staticmethod
+    @bot_function
     async def welcome_dm_message(member:ds.Member):
         try:
             embed_data = await AsyncFast.to_async(
