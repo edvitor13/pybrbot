@@ -141,6 +141,9 @@ class Interface:
             final_msg_result += msg_result
 
             i += 1
+        
+        if (not final_msg_result):
+            return None
 
         # Verificando se mensagem não passa do limite de chars.
         if (len(final_msg_result) <= 2000):
