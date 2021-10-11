@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Dict, List, Tuple
 import random
 import re
 import time
@@ -138,7 +138,7 @@ class Functions:
     @staticmethod
     def _code_interpreter_imgbb_api_upload(
         code_result:str
-    ) -> tuple[str, str]:
+    ) -> Tuple[str, str]:
         regex = r"<img *src *= *\"data:.*?base64,(.*?)\" .*?/>"
 
         matches = re.finditer(
@@ -255,7 +255,7 @@ class Functions:
     # Retorna todas as matches encontradas via regex
     # de trechos de códigos contidos na mensagem
     @staticmethod
-    def _code_interpreter_match_codes(message:str) -> list[re.Match]:
+    def _code_interpreter_match_codes(message:str) -> List[re.Match]:
         regex = r"```([a-z0-9]*)(.*?)```"
 
         matches = re.finditer(
